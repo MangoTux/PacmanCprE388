@@ -6,6 +6,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -17,6 +18,8 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
 import com.liunoble.pacman.Button;
 import com.liunoble.pacman.MenuScreen;
+import com.liunoble.pacman.Score;
+import com.liunoble.pacman.ScoreScreen;
 
 import java.util.ArrayList;
 
@@ -37,7 +40,7 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
     /* Helpful constants */
     //Number of rows on sprite sheet
     private static final int FRAME_ROWS = 9;
-    private enum GAMESTATE {Startup, Playing, Dying, Paused, LevelComplete}
+    private enum GAMESTATE {Startup, Playing, Dying, Paused, LevelComplete, GameOver, HighScore}
 
     /* Assets */
     // The texture for map and other static elements
@@ -93,7 +96,9 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
     private GAMESTATE gameState = GAMESTATE.Startup;
     private GAMESTATE prevState = GAMESTATE.Startup;
 
-    private boolean ghostSpooked[];
+    private boolean isScheduled = false;
+
+    Timer t = new Timer();
 
     public GameplayScreen(Game g)
     {
@@ -184,6 +189,7 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
             public void onCompletion(Music aMusic) {
                 gameState = GAMESTATE.Playing;
                 player.start();
+                siren.play();
             }
         });
 
@@ -192,16 +198,26 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
 
         eatGhost = Gdx.audio.newSound(Gdx.files.internal("GameplayAssets/sounds/eatghost.wav"));
 
-        siren = Gdx.audio.newMusic(Gdx.files.internal("GameplayAssets/sounds/ghostsiren.mp3"));
+        siren = Gdx.audio.newMusic(Gdx.files.internal("GameplayAssets/sounds/ghostsiren.wav"));
         siren.setLooping(true);
+        siren.setVolume(.5f);
         deathMusic = Gdx.audio.newMusic(Gdx.files.internal("GameplayAssets/sounds/pacman_death.wav"));
         deathMusic.setOnCompletionListener(new Music.OnCompletionListener() {
             @Override
             public void onCompletion(Music aMusic) {
                 player.loseLife();
-                player.reset();
-                gameState = GAMESTATE.Playing;
-                player.start();
+                if (player.getLives() <= 0)
+                    gameState = GAMESTATE.GameOver;
+                else {
+                    player.reset();
+                    gameState = GAMESTATE.Playing;
+                    t.scheduleTask(new Timer.Task() {
+                        @Override
+                        public void run() {
+                            player.start();
+                        }
+                    }, 1);
+                }
             }
         });
 
@@ -222,6 +238,7 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
             case Dying:   renderDying();   break;
             case Paused:  renderPaused();  break;
             case LevelComplete: renderComplete(); break;
+            case GameOver: renderGameOver(); break;
         }
 
         // On pressing BACK, change game state to Paused
@@ -332,6 +349,7 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
                 if (g.mode != Ghost.Mode.Hide && g.mode != Ghost.Mode.Spooked) {
                     cycleIndex = 0;
                     player.stop();
+                    siren.stop();
                     deathMusic.play();
                     gameState = GAMESTATE.Dying;
                     break;
@@ -403,7 +421,7 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
         Gdx.gl.glClearColor(1, 1, 1, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         batch.begin();
-        batch.draw((cycleIndex)/4%2==0?map:map_complete, 0, 0, 1200, 1824);
+        batch.draw((cycleIndex) / 4 % 2 == 0 ? map : map_complete, 0, 0, 1200, 1824);
         drawPlayer();
         batch.end();
         cycleIndex++;
@@ -412,6 +430,35 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
         /*
          * if (cycleIndex > threshold) nextLevel();
          */
+    }
+
+    private void renderGameOver()
+    {
+        Gdx.gl.glClearColor(1, 1, 1, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        batch.begin();
+        batch.draw(map, 0, 0);
+        font.setColor(Color.WHITE);
+        drawScore();
+        font.setColor(Color.RED);
+        font.draw(batch, "game over", 411, 969);
+        batch.end();
+        if (!isScheduled)
+        {
+            t.scheduleTask(new Timer.Task() {
+                @Override
+                public void run() {
+                    endGame();
+                }
+            }, 5);
+            isScheduled = true;
+        }
+    }
+
+    //TODO check high scores to see if user qualifies - If so, renderState HighScore, otherwise Score screen
+    private void endGame()
+    {
+        MainGame.setScreen(new ScoreScreen(MainGame, new Score(player.getScore(), "BIRD")));
     }
 
     /**
@@ -456,11 +503,11 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
         this.drawScaled(batch, currentPlayerFrame, player.getCurrentX(), player.getCurrentY());
     }
 
-    private void drawGhosts()
+    private void drawGhosts() // Currently an issue with centered-ness because of origin offset
     {
         for (int i = 0; i < 4; i++)
         {
-            this.drawScaled(batch, currentGhostFrame[i], ghostList.get(i).getCurrentX() - 21, ghostList.get(i).getCurrentY());
+            this.drawScaled(batch, currentGhostFrame[i], ghostList.get(i).getCurrentX(), ghostList.get(i).getCurrentY());
         }
     }
 
@@ -542,6 +589,20 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
         {
             g.mode = Ghost.Mode.Spooked;
         }
+        siren.stop(); // New sound for this period?
+        t.clear(); // Clear task schedule for new delay setting
+        t.scheduleTask(new Timer.Task(){
+            @Override
+            public void run() {
+                for (Ghost g : ghostList)
+                {
+                    if (g.mode == Ghost.Mode.Spooked)
+                    {
+                        g.mode = Ghost.Mode.Chase;
+                    }
+                }
+            }
+        }, 7);
         //TODO Schedule task for disabling eat-able ghosts
     }
 
@@ -553,9 +614,15 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
 
     public void eatGhost(Ghost g)
     {
+        eatGhost.play();
         ghostCount++;
         g.mode = Ghost.Mode.Hide;
         player.updateScore(200*ghostCount);
+        try {
+            Thread.sleep(333);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

@@ -34,7 +34,7 @@ public class Map
                     {W,W,W,W,W,W,D,W,W,W,W,W,E,W,W,E,W,W,W,W,W,D,W,W,W,W,W,W},
                     {E,E,E,E,E,W,D,W,W,W,W,W,E,W,W,E,W,W,W,W,W,D,W,E,E,E,E,E},
                     {E,E,E,E,E,W,D,W,W,E,E,E,E,E,E,E,E,E,E,W,W,D,W,E,E,E,E,E},
-                    {E,E,E,E,E,W,D,W,W,E,W,W,W,E,E,W,W,W,E,W,W,D,W,E,E,E,E,E},
+                    {E,E,E,E,E,W,D,W,W,E,W,W,W,W,W,W,W,W,E,W,W,D,W,E,E,E,E,E},
                     {W,W,W,W,W,W,D,W,W,E,W,E,E,E,E,E,E,W,E,W,W,D,W,W,W,W,W,W},
                     {E,E,E,E,E,E,D,E,E,E,W,E,E,E,E,E,E,W,E,E,E,D,E,E,E,E,E,E},
                     {W,W,W,W,W,W,D,W,W,E,W,E,E,E,E,E,E,W,E,W,W,D,W,W,W,W,W,W},
@@ -75,6 +75,8 @@ public class Map
         double epsilon = .9; //Fuzzy approximation, increase/decrease this if errors start occurring
         Vector2 currentLocation = e.GridToPixel(new Vector2(gridX, gridY));
         Vector2 nextLocation = new Vector2(0, 0);
+        if ((e.direction == Entity.Direction.Down && (gridX == 13 || gridX == 14) && gridY == 14))
+            return false;
         // if entity is not in center of grid cell, return true - implied that it's already moving
         //Check if entity is fuzzy in the center of cell, and return true if it's moving forward in that direction
         if ((e.direction == d) && (((d == Entity.Direction.Up || d == Entity.Direction.Down) && !(Math.abs(y - currentLocation.y) < epsilon)) || ((d == Entity.Direction.Left || d == Entity.Direction.Right) && !(Math.abs(x - currentLocation.x) < epsilon))))
