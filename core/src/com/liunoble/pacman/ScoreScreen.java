@@ -51,12 +51,14 @@ public class ScoreScreen implements Screen, InputProcessor
         Gdx.input.setInputProcessor(this);
     }
 
-    // To be used when sent from gameplay: TODO Get name here only if high score
+    // To be used when sent from gameplay
     public ScoreScreen(Game g, Score s)
     {
         MainGame = g;
         ScoreBuilder scoreBuilder = new ScoreBuilder(s);
         topScores = scoreBuilder.getTopScores();
+
+        Gdx.input.setInputProcessor(this);
     }
 
     @Override

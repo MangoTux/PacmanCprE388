@@ -3,6 +3,7 @@ package com.liunoble.pacman.Gameplay;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
@@ -46,6 +47,7 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
     // The texture for map and other static elements
     Texture map;
     Texture map_complete;
+    Texture highScoreBack;
     // The reference file that contains all mobile elements
     Texture spriteSheet;
     // Texture array that stores player animation frames
@@ -70,6 +72,10 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
 
     Button  resumeButton;
     Button  quitButton;
+    Button[] nameButton;
+    Button doneButton;
+    char[] name = {0, 0, 0};
+
     //The sound played at the beginning before control starts
     Music startMusic;
     // The sound played when individual dots are picked up
@@ -121,6 +127,9 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
         // Load the map and sprite sheet
         map = new Texture(Gdx.files.internal("GameplayAssets/map.png"));
         map_complete = new Texture(Gdx.files.internal("GameplayAssets/map_white.png"));
+        //TODO TODO TODO TODO TODO TODO
+        highScoreBack = new Texture(Gdx.files.internal("GameplayAssets/highScoreBack.png"));
+
         spriteSheet = new Texture(Gdx.files.internal("GameplayAssets/sprite_condensed.png"));
 
         // Instantiate arrays and arrayList with sizes
@@ -174,7 +183,20 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
         pauseMenu = new Texture(Gdx.files.internal("GameplayAssets/pauseMenu.png"));
         resumeButton = new Button(new Texture(Gdx.files.internal("GameplayAssets/playButton.png")), 900);
         quitButton   = new Button(new Texture(Gdx.files.internal("GameplayAssets/quitButton.png")), 700);
+        doneButton   = new Button(new Texture(Gdx.files.internal("GameplayAssets/doneButton.png")), 500);
 
+        nameButton = new Button[6];
+        for (int i=0; i<6; i++)
+        {
+            if (i<3)
+            {
+                nameButton[i] = new Button(new Texture(Gdx.files.internal("GameplayAssets/button_up.png")), 200+i*350, 1112);
+            }
+            else
+            {
+                nameButton[i] = new Button(new Texture(Gdx.files.internal("GameplayAssets/button_down.png")), 200+(i-3)*350, 712);
+            }
+        }
         // Initialize other components
         batch.enableBlending();
         currentPlayerFrame = playerFrames[8];
@@ -239,6 +261,7 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
             case Paused:  renderPaused();  break;
             case LevelComplete: renderComplete(); break;
             case GameOver: renderGameOver(); break;
+            case HighScore: renderHighScore(); break;
         }
 
         // On pressing BACK, change game state to Paused
@@ -323,7 +346,7 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
         drawLives();
         drawDots();
         drawPlayer();
-        drawGhosts();
+        drawGhosts(); // Something should really be done about these guys.
         batch.end();
 
         if (delayNeeded)
@@ -414,7 +437,7 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
 
     /**
      * On level complete, pause movement and flash screen
-     * TODO Implement - Flash screen, delay before new map()
+     * TODO Implement - Delay before new map()
      */
     private void renderComplete()
     {
@@ -455,10 +478,41 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
         }
     }
 
+    private void renderHighScore()
+    {
+        Gdx.gl.glClearColor(0, 0, 0, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        font.setColor(Color.YELLOW);
+        batch.begin();
+        batch.draw(highScoreBack, 0, 0);
+        // Draw the buttons
+        for (int i=0; i<6; i++)
+        {
+            batch.draw(nameButton[i].getTexture(), nameButton[i].getX(), nameButton[i].getY());
+        }
+        for (int i=0; i<3; i++)
+        {
+            font.draw(batch, Character.toString((char)(name[i]+65)), 200+i*350, 912);
+        }
+        batch.draw(doneButton.getTexture(), doneButton.getX(), doneButton.getY());
+        batch.end();
+    }
+
     //TODO check high scores to see if user qualifies - If so, renderState HighScore, otherwise Score screen
     private void endGame()
     {
-        MainGame.setScreen(new ScoreScreen(MainGame, new Score(player.getScore(), "BIRD")));
+        Preferences prefs = Gdx.app.getPreferences("scores");
+        String score;
+        for (int i=0; i<10; i++)
+        {
+            score = "score"+i;
+            if (player.getScore() > prefs.getInteger(score, 0))
+            {
+                gameState = GAMESTATE.HighScore;
+                return;
+            }
+        }
+        MainGame.setScreen(new ScoreScreen(MainGame));
     }
 
     /**
@@ -668,8 +722,28 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
                 //TODO Handle score submission, treat it as setting lives to 0 - Main menu, or third 'abandon' button?
                 MainGame.setScreen(new MenuScreen(MainGame));
             }
-        } else {
-            return false;
+        }
+        else if (gameState == GAMESTATE.HighScore)
+        {
+            for (int i=0; i<3; i++)
+            {
+                if (nameButton[i].contains((int)x, (int)y))
+                {
+                    name[i]+=27; name[i]%=26; //Modular arithmetic to keep values in bounds
+                }
+                else if (nameButton[i+3].contains((int)x, (int)y))
+                {
+                    name[i]+=25; name[i]%=26; //Modular arithmetic
+                }
+            }
+            if (doneButton.contains((int)x, (int)y))
+            {
+                for (int i=0; i<3; i++)
+                {
+                    name[i] = (char)(name[i]+65);
+                }
+                MainGame.setScreen(new ScoreScreen(MainGame, new Score(player.getScore(), new String(name))));
+            }
         }
         return true;
     }
