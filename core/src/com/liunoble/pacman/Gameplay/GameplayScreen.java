@@ -25,7 +25,7 @@ import com.liunoble.pacman.ScoreScreen;
 import java.util.ArrayList;
 
 /**
- * Created by Carson on 12/3/2015.
+ * Created by Carson  on 12/3/2015.
  */
 public class GameplayScreen implements Screen, GestureDetector.GestureListener
 {
@@ -84,9 +84,6 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
     Sound chompB;
     // The sound played when a ghost is eaten
     Sound eatGhost;
-    // The 'siren' sound the ghosts make when non-energized.
-    Music siren;
-    Music energizerSiren;
     // Music that plays when player collides with ghost, to be done concurrently with animation
     Music deathMusic;
 
@@ -99,13 +96,12 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
     int score = 0;
     int ghostCount = 0;
     // If the game has started yet - for setup and starting sound
-    private boolean gameStarted = false;
     private GAMESTATE gameState = GAMESTATE.Startup;
     private GAMESTATE prevState = GAMESTATE.Startup;
 
     private boolean isScheduled = false;
 
-    private int level = 1;
+    private int level = 1; // The current level the user is on
 
     Timer t = new Timer();
 
@@ -160,16 +156,19 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
         for (int i = 0; i < FRAME_ROWS - 1; i++) {
             playerFrames[i] = temp[0][i]; //[0][i]
             for (int j = 0; j < 4; j++) {
+                //noinspection ManualArrayCopy
                 ghostFrames[i][j] = temp[j + 1][i];
             }
         }
         playerFrames[FRAME_ROWS - 1] = temp[0][FRAME_ROWS - 1]; // Player has more animation cells than ghosts
 
         // Build the scared ghost frames
+        //noinspection ManualArrayCopy
         for (int i=0; i<4; i++)
         {
             ghostScaredFrames[i] = temp[i+1][8];
         }
+        //noinspection ManualArrayCopy
         for (int i=0; i<FRAME_ROWS; i++) {
             playerDeathFrames[i] = temp[7][i];
         }
@@ -178,8 +177,10 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
 
         // Create the dot and fruit textures
         dotTexture = temp[5][0];
+        //noinspection ManualArrayCopy
         for (int i=0; i<8; i++)
             fruitList[i] = temp[5][i+1];
+        //noinspection ManualArrayCopy
         for (int i=0; i<3; i++)
             readyText[i] = temp[6][i];
 
@@ -204,6 +205,7 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
         // Initialize other components
         batch.enableBlending();
         currentPlayerFrame = playerFrames[8];
+        //noinspection ManualArrayCopy
         for (int i=0; i<4; i++) {
             currentGhostFrame[i] = ghostFrames[0][i];
         }
@@ -215,7 +217,6 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
             public void onCompletion(Music aMusic) {
                 gameState = GAMESTATE.Playing;
                 player.start();
-                siren.play();
             }
         });
 
@@ -223,14 +224,6 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
         chompB = Gdx.audio.newSound(Gdx.files.internal("GameplayAssets/sounds/chomp_B.mp3")); // Ka
 
         eatGhost = Gdx.audio.newSound(Gdx.files.internal("GameplayAssets/sounds/eatghost.wav"));
-
-        siren = Gdx.audio.newMusic(Gdx.files.internal("GameplayAssets/sounds/ghostsiren.wav"));
-        siren.setLooping(true);
-        siren.setVolume(.5f);
-        //TODO proper file
-        energizerSiren = Gx.audio.newMusic(Gdx.files.internal("GameplayAssets/sounds/ghostsiren.wav"));
-        energizerSiren.setLooping(true);
-        energizerSiren.setVolume(.5f);
 
         deathMusic = Gdx.audio.newMusic(Gdx.files.internal("GameplayAssets/sounds/pacman_death.wav"));
         deathMusic.setOnCompletionListener(new Music.OnCompletionListener() {
@@ -380,7 +373,6 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
                 if (g.mode != Ghost.Mode.Hide && g.mode != Ghost.Mode.Spooked) {
                     cycleIndex = 0;
                     player.stop();
-                    siren.stop();
                     deathMusic.play();
                     gameState = GAMESTATE.Dying;
                     break;
@@ -519,6 +511,7 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
         ghostList.get(3).resetPosition(16, 17);
         gameState = GAMESTATE.Startup;
         level++;
+        // Intermission?
         startMusic.setVolume(0);
         startMusic.play();
 
@@ -554,8 +547,7 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
     /**
      * Draws score in top-left corner
      */
-    private void drawScore()
-    {
+    private void drawScore() {
         font.draw(batch, Integer.toString(player.getScore()), 201, 1746);
     }
 
@@ -569,7 +561,7 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
             for (int j = 0; j < 28; j++)
             {
                 Vector2 coord = Entity.GridToPixel(new Vector2(j, i));
-                if (gameMap.grid[i][j] == '.') // Replace with actual dot sprites
+                if (gameMap.grid[i][j] == '.' || gameMap.grid[i][j] == ',') // Replace with actual dot sprites
                     batch.draw(dotTexture, coord.x - 7, coord.y - 7, 14, 14);
                 else if (gameMap.grid[i][j] == 'o')
                     batch.draw(dotTexture, coord.x - 21, coord.y - 21, 42, 42);
@@ -577,8 +569,7 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
         }
     }
 
-    private void drawPlayer()
-    {
+    private void drawPlayer() {
         this.drawScaled(batch, currentPlayerFrame, player.getCurrentX(), player.getCurrentY());
     }
 
@@ -667,19 +658,16 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
         {
             g.mode = Ghost.Mode.Spooked;
         }
-        siren.stop(); // New sound for this period?
         t.clear(); // Clear task schedule for new delay setting
-        t.scheduleTask(new Timer.Task(){
+        t.scheduleTask(new Timer.Task() {
             @Override
             public void run() {
-                for (Ghost g : ghostList)
-                {
-                    if (g.mode == Ghost.Mode.Spooked)
-                    {
+                for (Ghost g : ghostList) {
+                    if (g.mode == Ghost.Mode.Spooked) {
                         g.mode = Ghost.Mode.Chase;
                     }
                 }
-                siren.play(); // Restart siren sound
+                ghostCount = 0; // Reset ghost count for next energizer
             }
         }, 7);
     }
@@ -690,6 +678,10 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
     {
     }
 
+    /**
+     * Called when player collides with ghost in proper state - Sprite for ghost changes to eyes
+     * @param g
+     */
     public void eatGhost(Ghost g)
     {
         eatGhost.play();
@@ -706,8 +698,8 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
     @Override
     public void pause()
     {
-        if (siren.isPlaying())
-            siren.stop();
+        if (startMusic.isPlaying())
+            startMusic.pause();
     }
 
     @Override
@@ -733,6 +725,14 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
         return false;
     }
 
+    /**
+     * Used to determine if user pressed a button and perform relevant action
+     * @param x X-location of tap
+     * @param y Y-location of tap
+     * @param count ???
+     * @param button ???
+     * @return boolean if consumer
+     */
     @Override
     public boolean tap(float x, float y, int count, int button)
     {
@@ -773,6 +773,12 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
         return true;
     }
 
+    /**
+     * Implemented because mandatory
+     * @param x X location of press
+     * @param y Y location of press
+     * @return false
+     */
     @Override
     public boolean longPress(float x, float y) {
         return false;
@@ -780,10 +786,6 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
 
     /**
      * Gets fling input from user and interprets as desired direction to move next.
-     * @param velocityX
-     * @param velocityY
-     * @param button
-     * @return
      */
     @Override
     public boolean fling(float velocityX, float velocityY, int button) {
@@ -828,15 +830,6 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
         return false;
     }
 
-    private void gameDelay(int i) {
-        Timer.schedule(new Timer.Task() {
-            @Override
-            public void run() {
-                //...
-            }
-        }, i);
-    }
-
     private long diff, start = System.currentTimeMillis();
     // FPS sleep used for the render() method
     public void sleep(int fps)
@@ -848,6 +841,7 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
                 try {
                     Thread.sleep(targetDelay - diff);
                 } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
             start = System.currentTimeMillis();

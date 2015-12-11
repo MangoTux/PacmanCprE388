@@ -9,8 +9,10 @@ public class Map
 {
     private final char W = 'w';
     private final char D = '.';
+    private final char d = ',';
     private final char L = 'o';
     private final char E = ' ';
+    private final char F = '_';
     private final int SIZEX = 28;
     private final int SIZEY = 36;
 
@@ -23,35 +25,35 @@ public class Map
                     {E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E},
                     {E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E},
                     {W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W},
-                    {W,D,D,D,D,D,D,D,D,D,D,D,D,W,W,D,D,D,D,D,D,D,D,D,D,D,D,W},
+                    {W,D,D,D,D,D,d,D,D,D,D,D,D,W,W,D,D,D,D,D,D,d,D,D,D,D,D,W},
                     {W,D,W,W,W,W,D,W,W,W,W,W,D,W,W,D,W,W,W,W,W,D,W,W,W,W,D,W},
                     {W,L,W,W,W,W,D,W,W,W,W,W,D,W,W,D,W,W,W,W,W,D,W,W,W,W,L,W},
                     {W,D,W,W,W,W,D,W,W,W,W,W,D,W,W,D,W,W,W,W,W,D,W,W,W,W,D,W},
-                    {W,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,W},
+                    {W,d,D,D,D,D,d,D,D,d,D,D,d,D,D,d,D,D,d,D,D,d,D,D,D,D,d,W},
                     {W,D,W,W,W,W,D,W,W,D,W,W,W,W,W,W,W,W,D,W,W,D,W,W,W,W,D,W},
                     {W,D,W,W,W,W,D,W,W,D,W,W,W,W,W,W,W,W,D,W,W,D,W,W,W,W,D,W},
-                    {W,D,D,D,D,D,D,W,W,D,D,D,D,W,W,D,D,D,D,W,W,D,D,D,D,D,D,W},
+                    {W,D,D,D,D,D,d,W,W,D,D,D,D,W,W,D,D,D,D,W,W,d,D,D,D,D,D,W},
                     {W,W,W,W,W,W,D,W,W,W,W,W,E,W,W,E,W,W,W,W,W,D,W,W,W,W,W,W},
                     {E,E,E,E,E,W,D,W,W,W,W,W,E,W,W,E,W,W,W,W,W,D,W,E,E,E,E,E},
                     {E,E,E,E,E,W,D,W,W,E,E,E,E,E,E,E,E,E,E,W,W,D,W,E,E,E,E,E},
                     {E,E,E,E,E,W,D,W,W,E,W,W,W,W,W,W,W,W,E,W,W,D,W,E,E,E,E,E},
                     {W,W,W,W,W,W,D,W,W,E,W,E,E,E,E,E,E,W,E,W,W,D,W,W,W,W,W,W},
-                    {E,E,E,E,E,E,D,E,E,E,W,E,E,E,E,E,E,W,E,E,E,D,E,E,E,E,E,E},
+                    {E,E,E,E,E,E,d,E,E,F,W,E,E,E,E,E,E,W,F,E,E,D,E,E,E,E,E,E},
                     {W,W,W,W,W,W,D,W,W,E,W,E,E,E,E,E,E,W,E,W,W,D,W,W,W,W,W,W},
                     {E,E,E,E,E,W,D,W,W,E,W,W,W,W,W,W,W,W,E,W,W,D,W,E,E,E,E,E},
-                    {E,E,E,E,E,W,D,W,W,E,E,E,E,E,E,E,E,E,E,W,W,D,W,E,E,E,E,E},
+                    {E,E,E,E,E,W,D,W,W,F,E,E,E,E,E,E,E,E,F,W,W,D,W,E,E,E,E,E},
                     {E,E,E,E,E,W,D,W,W,E,W,W,W,W,W,W,W,W,E,W,W,D,W,E,E,E,E,E},
                     {W,W,W,W,W,W,D,W,W,E,W,W,W,W,W,W,W,W,E,W,W,D,W,W,W,W,W,W},
-                    {W,D,D,D,D,D,D,D,D,D,D,D,D,W,W,D,D,D,D,D,D,D,D,D,D,D,D,W},
+                    {W,D,D,D,D,D,d,D,D,d,D,D,D,W,W,D,D,D,d,D,D,d,D,D,D,D,D,W},
                     {W,D,W,W,W,W,D,W,W,W,W,W,D,W,W,D,W,W,W,W,W,D,W,W,W,W,D,W},
                     {W,D,W,W,W,W,D,W,W,W,W,W,D,W,W,D,W,W,W,W,W,D,W,W,W,W,D,W},
-                    {W,L,D,D,W,W,D,D,D,D,D,D,D,E,E,D,D,D,D,D,D,D,W,W,D,D,L,W},
+                    {W,L,D,D,W,W,d,D,D,D,D,D,d,E,E,d,D,D,D,D,D,d,W,W,D,D,L,W},
                     {W,W,W,D,W,W,D,W,W,D,W,W,W,W,W,W,W,W,D,W,W,D,W,W,D,W,W,W},
                     {W,W,W,D,W,W,D,W,W,D,W,W,W,W,W,W,W,W,D,W,W,D,W,W,D,W,W,W},
-                    {W,D,D,D,D,D,D,W,W,D,D,D,D,W,W,D,D,D,D,W,W,D,D,D,D,D,D,W},
+                    {W,D,D,d,D,D,D,W,W,D,D,D,D,W,W,D,D,D,D,W,W,D,D,D,d,D,D,W},
                     {W,D,W,W,W,W,W,W,W,W,W,W,D,W,W,D,W,W,W,W,W,W,W,W,W,W,D,W},
                     {W,D,W,W,W,W,W,W,W,W,W,W,D,W,W,D,W,W,W,W,W,W,W,W,W,W,D,W},
-                    {W,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,W},
+                    {W,D,D,D,D,D,D,D,D,D,D,D,d,D,D,d,D,D,D,D,D,D,D,D,D,D,D,W},
                     {W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W},
                     {E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E},
                     {E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E}};
@@ -118,6 +120,7 @@ public class Map
         if (e.getGridX() >= 28) return 0;
         switch(grid[e.getGridY()][e.getGridX()])
         {
+            case d: grid[e.getGridY()][e.getGridX()] = F; numDots--; return 10;
             case D: grid[e.getGridY()][e.getGridX()] = E; numDots--; return 10; //Dots are worth 10
             case L: grid[e.getGridY()][e.getGridX()] = E; numDots--; return 50; //Large dots are worth 50
             default: return 0; //Otherwise, nothing else happens.
