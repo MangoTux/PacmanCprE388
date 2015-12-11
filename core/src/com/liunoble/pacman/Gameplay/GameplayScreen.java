@@ -86,6 +86,7 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
     Sound eatGhost;
     // The 'siren' sound the ghosts make when non-energized.
     Music siren;
+    Music energizerSiren;
     // Music that plays when player collides with ghost, to be done concurrently with animation
     Music deathMusic;
 
@@ -129,7 +130,7 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
         // Load the map and sprite sheet
         map = new Texture(Gdx.files.internal("GameplayAssets/map.png"));
         map_complete = new Texture(Gdx.files.internal("GameplayAssets/map_white.png"));
-        //TODO TODO TODO TODO TODO TODO
+        //TODO use proper texture for this
         highScoreBack = new Texture(Gdx.files.internal("GameplayAssets/highScoreBack.png"));
 
         spriteSheet = new Texture(Gdx.files.internal("GameplayAssets/sprite_condensed.png"));
@@ -185,6 +186,7 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
         pauseMenu = new Texture(Gdx.files.internal("GameplayAssets/pauseMenu.png"));
         resumeButton = new Button(new Texture(Gdx.files.internal("GameplayAssets/playButton.png")), 900);
         quitButton   = new Button(new Texture(Gdx.files.internal("GameplayAssets/quitButton.png")), 700);
+        //TODO Get proper texture for button
         doneButton   = new Button(new Texture(Gdx.files.internal("GameplayAssets/doneButton.png")), 500);
 
         nameButton = new Button[6];
@@ -225,6 +227,11 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
         siren = Gdx.audio.newMusic(Gdx.files.internal("GameplayAssets/sounds/ghostsiren.wav"));
         siren.setLooping(true);
         siren.setVolume(.5f);
+        //TODO proper file
+        energizerSiren = Gx.audio.newMusic(Gdx.files.internal("GameplayAssets/sounds/ghostsiren.wav"));
+        energizerSiren.setLooping(true);
+        energizerSiren.setVolume(.5f);
+
         deathMusic = Gdx.audio.newMusic(Gdx.files.internal("GameplayAssets/sounds/pacman_death.wav"));
         deathMusic.setOnCompletionListener(new Music.OnCompletionListener() {
             @Override
