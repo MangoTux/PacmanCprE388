@@ -104,6 +104,8 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
 
     private boolean isScheduled = false;
 
+    private int level = 1;
+
     Timer t = new Timer();
 
     public GameplayScreen(Game g)
@@ -366,7 +368,6 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
         // Check for collisions
         for (Ghost g : ghostList)
         {
-            //TODO improve this - much more lenient on left side than right - Centered equals?
             if (player.grid.equals(g.grid)) // && Not energizer-ed
             {
                 if (g.mode != Ghost.Mode.Hide && g.mode != Ghost.Mode.Spooked) {
@@ -437,7 +438,6 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
 
     /**
      * On level complete, pause movement and flash screen
-     * TODO Implement - Delay before new map()
      */
     private void renderComplete()
     {
@@ -449,10 +449,8 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
         batch.end();
         cycleIndex++;
         sleep(15);
-        //TODO:
-        /*
-         * if (cycleIndex > threshold) nextLevel();
-         */
+        if (cycleIndex > 30) nextLevel();
+
     }
 
     private void renderGameOver()
@@ -498,7 +496,27 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
         batch.end();
     }
 
-    //TODO check high scores to see if user qualifies - If so, renderState HighScore, otherwise Score screen
+    /**
+     * On successful completion of any given level, set up a new map and
+     */
+    private void nextLevel()
+    {
+        // Initialize a new map to be played on
+        gameMap = new Map();
+        // Set player position back to its origin
+        player.reset();
+        // Reset all ghosts to original positions
+        ghostList.get(0).resetPosition(14, 14);
+        ghostList.get(1).resetPosition(14, 17);
+        ghostList.get(2).resetPosition(12, 17);
+        ghostList.get(3).resetPosition(16, 17);
+        gameState = GAMESTATE.Startup;
+        level++;
+        startMusic.setVolume(0);
+        startMusic.play();
+
+    }
+
     private void endGame()
     {
         Preferences prefs = Gdx.app.getPreferences("scores");
@@ -557,7 +575,7 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
         this.drawScaled(batch, currentPlayerFrame, player.getCurrentX(), player.getCurrentY());
     }
 
-    private void drawGhosts() // Currently an issue with centered-ness because of origin offset
+    private void drawGhosts() // Currently an issue with centered-ness because of origin offset/ghost house shenanigans
     {
         for (int i = 0; i < 4; i++)
         {
@@ -577,8 +595,8 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
         batch.draw(img, x - 39, y - 39, 39 * 2, 39 * 2);
     }
 
-    //Handles all movement/scoring/logic for the player
-    //TODO Improve method - currently very, very ugly
+    // Handles all movement/scoring/logic for the player
+    // Ugly, but it works!
     public void movePlayer()
     {
         if (player.moveable)
@@ -589,7 +607,7 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
                 hasFlung = false; //Consume the fling
                 player.isMoving = true;
                 // As of right now, the only speeds that work are numbers that yield an integer when 42 is divided by speed
-                // TODO Rework move as series of single-space move/check canMove
+                // Rework move as series of single-space move/check canMove (If time)
                 player.move(5.25f);
 
                 player.updateScore(gameMap.gridEvent(player));
@@ -606,7 +624,6 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
     }
 
     // Take care of all actions relating to score/dot pickup here
-    // TODO Finish method with all relevant elements
     public void dotHandler()
     {
         // Perform the grid event and get score
@@ -655,9 +672,9 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
                         g.mode = Ghost.Mode.Chase;
                     }
                 }
+                siren.play(); // Restart siren sound
             }
         }, 7);
-        //TODO Schedule task for disabling eat-able ghosts
     }
 
     //Handles all movement/logic for the list of ghosts
@@ -682,7 +699,8 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
     @Override
     public void pause()
     {
-
+        if (siren.isPlaying())
+            siren.stop();
     }
 
     @Override
