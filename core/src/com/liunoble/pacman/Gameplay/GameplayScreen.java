@@ -489,7 +489,7 @@ public class GameplayScreen implements Screen, GestureDetector.GestureListener
         }
         for (int i=0; i<3; i++)
         {
-            font.draw(batch, Character.toString((char)(name[i]+65)), 200+i*350, 912);
+            font.draw(batch, Character.toString((char)(name[i]+65)), 229+i*350, 974);
         }
         batch.draw(doneButton.getTexture(), doneButton.getX(), doneButton.getY());
         batch.end();
